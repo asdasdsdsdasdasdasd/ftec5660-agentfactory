@@ -2,3 +2,8 @@ __pycache__
 workspace
 .browser_profile
 .env
+evaluations/*/q*.log
+_browser_keeper.py
+_browser_task_state.json
+_keeper.log
+report/*.html

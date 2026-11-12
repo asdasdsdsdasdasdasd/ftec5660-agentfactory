@@ -5,7 +5,7 @@ description: Retrieve the full content of a web page by its URL. The snippets fr
 
 # Open Page Tool
 
-read_url_jina: Retrieve the full, untruncated content of a web page using its URL and convert to Markdown format. Since search tools only return brief snippets that may miss critical information, use `read_url_jina` on any relevant result to ensure you have the complete content.
+read_url_jina: Retrieve page content as Markdown via DeepSeek Fetch (`POST /v1/tools/fetch`). Call name is unchanged. Since search tools only return brief snippets that may miss critical information, use `read_url_jina` on any relevant result to ensure you have the complete content.
 
 ## Usage
 

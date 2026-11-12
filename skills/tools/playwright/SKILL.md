@@ -25,14 +25,15 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(tools.__file__))
 USER_DATA_DIR = os.path.join(PROJECT_ROOT, ".browser_profile")
 
 with sync_playwright() as p:
-    # Use persistent context to preserve login sessions across runs
+    # Use persistent context to preserve login sessions across runs.
+    # Use Playwright's bundled Chromium (no channel="chrome") so this runs
+    # on machines without Google Chrome. headless=True for unattended eval.
     context = p.chromium.launch_persistent_context(
         USER_DATA_DIR,
-        headless=False,       # set True for headless, False to see the browser
-        channel="chrome",
+        headless=True,
         locale="zh-CN",
         viewport={"width": 1280, "height": 800},
-        args=["--disable-blink-features=AutomationControlled"],
+        args=["--disable-blink-features=AutomationControlled", "--no-sandbox", "--disable-dev-shm-usage"],
     )
     page = context.new_page()
     page.goto("https://example.com", wait_until="domcontentloaded")

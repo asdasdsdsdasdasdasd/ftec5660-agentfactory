@@ -1,11 +1,11 @@
 ---
 name: google_search
-description: Search the internet via Google (Serper API). Returns only titles, URLs, and short snippets. Use read_url_jina to get full page content.
+description: Search the internet via DeepSeek Search API. Returns only titles, URLs, and short snippets. Use read_url_jina to get full page content.
 ---
 
 # Search Tool
 
-search_serper: High-quality search using Google via Serper API. Returns web page title, url and a short snippet.
+search_serper: Web search via DeepSeek Search (`POST /v1/tools/search`). Call name is unchanged. Returns web page title, url and a short snippet.
 
 ## Usage
 

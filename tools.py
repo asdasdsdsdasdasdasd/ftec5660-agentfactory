@@ -14,91 +14,101 @@ Usage:
 """
 
 import os
-import httpx
 from typing import Dict, Any, Optional, List
 import requests
-import time
 import subprocess
 import re
-import json
-import http
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SERPER_API_KEY = os.getenv("SERPER_API_KEY")
-JINA_API_KEY = os.getenv("JINA_API_KEY")
+DEEPSEEK_SEARCH_URL = "https://api.deepseek.com/v1/tools/search"
+DEEPSEEK_FETCH_URL = "https://api.deepseek.com/v1/tools/fetch"
 
-def read_url_jina(url: str) -> str:
-    """
-    Use Jina Reader to convert a web page URL into clean Markdown text.
-    Suitable for reading articles from WeChat, Zhihu, news sites, stripping ads.
-    """
-    print(f"📖 [Jina Reader] Reading: {url}")
 
-    api_key = JINA_API_KEY
-    jina_base = "https://r.jina.ai/"
-    target_url = f"{jina_base}{url}"
+def _deepseek_api_key(explicit: Optional[str] = None) -> str:
+    return (
+        (explicit or "").strip()
+        or os.getenv("DEEPSEEK_API_KEY", "").strip()
+        or os.getenv("META_AGENT_API_KEY", "").strip()
+        or os.getenv("LLM_API_KEY", "").strip()
+    )
 
-    headers = {}
 
-    key = api_key
-    if key:
-        headers["Authorization"] = f"Bearer {key}"
-    print("wait for a moment...")
-    time.sleep(2)
-    try:
-        response = requests.get(target_url, headers=headers, timeout=20)
-        if response.status_code == 429:
-            return "❌ Error: Jina Rate Limit Exceeded. (Too many requests, consider getting a free API key)"
-        response.raise_for_status()
-        return response.text[:8000]
-    except Exception as e:
-        return f"❌ Jina Read Error: {e}"
-
-def search_serper(query: str, topk: int = 10, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
-    """
-    Web search using the google.serper.dev API.
-
-    Input (compatible with original search_serper):
-        - query: search query
-        - topk: number of results to return
-        - api_key: optional API Key (uses default key if not provided)
-
-    Output (compatible with original search_serper):
-        [{"title": ..., "link": ..., "snippet": ...}, ...]
-        On failure: [{"error": "..."}]
-    """
-    print(f"🔍 [Serper] Searching: {query}")
-
-    key = api_key or SERPER_API_KEY
-    payload = json.dumps({"q": query, "num": topk})
-    headers = {
-        "X-API-KEY": key,
+def _deepseek_headers(api_key: Optional[str] = None) -> Dict[str, str]:
+    key = _deepseek_api_key(api_key)
+    if not key:
+        raise RuntimeError(
+            "DeepSeek API key missing. Set DEEPSEEK_API_KEY or META_AGENT_API_KEY."
+        )
+    return {
+        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
 
+
+def read_url_jina(url: str) -> str:
+    """
+    Fetch a web page as Markdown via DeepSeek Fetch.
+    Function name kept as read_url_jina so existing subagent code still imports it.
+    """
+    print(f"📖 [DeepSeek Fetch] Reading: {url}")
     try:
-        conn = http.client.HTTPSConnection("google.serper.dev", timeout=30)
-        conn.request("POST", "/search", payload, headers)
-        res = conn.getresponse()
-        raw = res.read()
-        conn.close()
+        response = requests.post(
+            DEEPSEEK_FETCH_URL,
+            headers=_deepseek_headers(),
+            json={"url": url},
+            timeout=30,
+        )
+        if response.status_code == 429:
+            return "❌ Error: DeepSeek Fetch rate limit exceeded."
+        if response.status_code != 200:
+            return f"❌ DeepSeek Fetch Error: HTTP {response.status_code}: {response.text[:500]}"
+        page = response.json()
+        title = page.get("title") or ""
+        content = page.get("content") or ""
+        text = f"# {title}\n\n{content}" if title else content
+        return text[:8000]
+    except Exception as e:
+        return f"❌ DeepSeek Fetch Error: {e}"
 
-        if res.status != 200:
-            return [{"error": f"HTTP {res.status}: {raw.decode('utf-8', errors='replace')}"}]
 
-        data = json.loads(raw.decode("utf-8"))
-        organic = data.get("organic", [])
+def search_serper(query: str, topk: int = 10, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Web search via DeepSeek Search API.
 
-        return [
-            {
+    Function name kept as search_serper so existing / generated subagent code
+    still works. Return format matches the original Serper wrapper:
+        [{"title": ..., "link": ..., "snippet": ...}, ...]
+        On failure: [{"error": "..."}]
+    """
+    print(f"🔍 [DeepSeek Search] Searching: {query}")
+    q = (query or "").strip()
+    if not q:
+        return [{"error": "empty query"}]
+    # DeepSeek Search query limit is 128 Unicode characters.
+    if len(q) > 128:
+        q = q[:128]
+
+    count = max(1, min(int(topk or 10), 50))
+    try:
+        response = requests.post(
+            DEEPSEEK_SEARCH_URL,
+            headers=_deepseek_headers(api_key),
+            json={"query": q, "count": count, "need_content": False},
+            timeout=30,
+        )
+        if response.status_code != 200:
+            return [{"error": f"HTTP {response.status_code}: {response.text[:500]}"}]
+        results = response.json().get("results") or []
+        mapped = []
+        for item in results[:count]:
+            mapped.append({
                 "title": item.get("title"),
-                "link": item.get("link"),
-                "snippet": item.get("snippet"),
-            }
-            for item in organic[:topk]
-        ]
+                "link": item.get("url"),
+                "snippet": item.get("summary") or item.get("snippet") or "",
+            })
+        return mapped
     except Exception as e:
         return [{"error": str(e)}]
  
