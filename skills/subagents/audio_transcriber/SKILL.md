@@ -1,27 +1,22 @@
 ---
 name: audio_transcriber
-description: **Problem Category**: Audio file transcription using OpenAI Whisper
+description: **Problem Category**: Speech-to-text transcription of audio files (MP3/WAV/etc.).
 entry_file: audio_transcriber.py
 ---
 
 # audio_transcriber
 
 ## Description
-**Problem Category**: Audio file transcription using OpenAI Whisper
-**Applicable Questions**: Transcribing audio files (mp3, wav, etc.) to text, especially Chinese audio
-**Key Features**:
-- Uses OpenAI Whisper model for transcription
-- Supports Chinese language transcription
-- Falls back to Google Speech Recognition if Whisper fails
-- Auto-installs required dependencies
-- Extracts file path from natural language query via LLM
-**Skills Used**: execute_shell_command
-**Reasoning Pattern**: 1) Parse query for file path 2) Verify file exists 3) Install whisper 4) Transcribe with whisper (base model, zh language) 5) Fallback to SpeechRecognition if needed 6) Return transcribed text
-**Input Format**: Natural language query containing an audio file path (e.g., 'Transcribe the audio file at /path/to/file.mp3')
-**Output Format**: {answer: transcribed text, summary: process description}
+**Problem Category**: Speech-to-text transcription of audio files (MP3/WAV/etc.).
+**Applicable Questions**: 'Transcribe this audio', 'What is said in <file>.mp3', extracting spoken instructions from a recording.
+**Key Features**: Parses audio path from query via LLM, verifies file, installs faster-whisper (falls back to openai-whisper), uses imageio-ffmpeg bundled binary or passes original audio directly when system ffmpeg is missing, transcribes and returns verbatim text.
+**Skills Used**: execute_shell_command.
+**Reasoning Pattern**: parse(query)->ensure backend+ffmpeg->transcribe (faster-whisper then openai-whisper fallback)->return text.
+**Input Format**: Natural-language request containing the audio file path.
+**Output Format**: dict with answer (verbatim transcript) and LLM summary.
 
 ## Skills Used
-playwright, google_search, execute_shell_command
+playwright, execute_shell_command
 
 ## Usage
 
