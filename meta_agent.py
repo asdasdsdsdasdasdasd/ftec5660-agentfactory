@@ -725,17 +725,13 @@ Use get_skill_description to view details of any skill before using it."""
             # Auto-stop after 60 iterations if not using human_confirm
             if not self.human_confirm and iteration >= 60:
                 self.log(f"\n[Auto-stop] Reached 60 iterations, moving to next question.")
-                return {
-                    "success": True,
-                    "final_answer": "[Skipped - max iterations]",
-                    "trajectory": self.trajectory,
-                    "total_iterations": iteration
-                }
+                final_answer = "[Skipped - max iterations]"
+                break
 
             if iteration > 1:
                 result = call_llm(system, self.messages)
             else:
-                result = call_llm(system, self.messages, max_tokens=200)
+                result = call_llm(system, self.messages, max_tokens=4000)
                 
             if not result["success"]:
                 self.log(f"LLM Error: {result.get('error')}")

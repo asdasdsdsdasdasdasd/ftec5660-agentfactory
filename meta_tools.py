@@ -82,11 +82,13 @@ def run_python_file(path: str, question: str = "", timeout: int = 600, work_dir:
     # Switch to subagent environment variables
     load_dotenv()
     original_env = {
+        "LLM_ROLE": os.environ.get("LLM_ROLE"),
         "LLM_URL": os.environ.get("LLM_URL"),
         "LLM_API_KEY": os.environ.get("LLM_API_KEY"),
         "LLM_MODEL": os.environ.get("LLM_MODEL"),
         "LLM_PROTOCOL": os.environ.get("LLM_PROTOCOL")
     }
+    os.environ["LLM_ROLE"] = "subagent"
     os.environ["LLM_URL"] = os.getenv("SUBAGENT_URL", "")
     os.environ["LLM_API_KEY"] = os.getenv("SUBAGENT_API_KEY", "")
     os.environ["LLM_MODEL"] = os.getenv("SUBAGENT_MODEL", "")
