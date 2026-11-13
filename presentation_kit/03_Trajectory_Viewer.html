@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentFactory Trajectory Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1a1c2e, #2a2d4a); padding: 20px 28px 16px; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 20px; color: #7eb8ff; margin-bottom: 10px; }
+  .header .sub { font-size: 12px; color: #889; margin-bottom: 12px; }
+  .file-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .file-controls label, .preset-btn {
+    background: #2a5caa; color: #fff; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    border: 0; font-family: inherit; transition: background 0.15s, outline 0.15s;
+  }
+  .file-controls label:hover, .preset-btn:hover { background: #3a6cba; }
+  .preset-btn.active { background: #1e8a5a; outline: 2px solid #7dffb3; }
+  .preset-btn.warn { background: #8a4a1a; }
+  .preset-btn.warn.active { background: #b45a18; outline: 2px solid #ffcc88; }
+  .file-controls input[type="file"] { display: none; }
+  .file-name { color: #999; font-size: 13px; }
+
+  .meta-bar { background: #161822; padding: 14px 28px; border-bottom: 1px solid #222; display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
+  .meta-item { font-size: 13px; color: #aaa; }
+  .meta-item span { color: #7eb8ff; font-weight: 600; }
+
+  .question-box { background: #1a2236; margin: 18px 28px; padding: 18px 22px; border-radius: 10px; border-left: 4px solid #7eb8ff; }
+  .answer-box { background: #1a2e1a; margin: 0 28px 18px; padding: 18px 22px; border-radius: 10px; border-left: 4px solid #5cb85c; }
+  .question-box .label, .answer-box .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .question-box .label { color: #7eb8ff; }
+  .answer-box .label { color: #5cb85c; }
+  .question-box .text, .answer-box .text { font-size: 14px; line-height: 1.65; white-space: pre-wrap; }
+
+  .timeline { padding: 12px 28px 60px; }
+  .iteration-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; user-select: none; }
+  .iteration-badge { background: #2a5caa; color: #fff; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; min-width: 32px; text-align: center; }
+  .iteration-summary { font-size: 13px; color: #888; flex: 1; }
+  .iteration-toggle { color: #555; font-size: 18px; transition: transform 0.2s; }
+  .iteration-toggle.open { transform: rotate(90deg); }
+  .iteration-body { margin-left: 20px; border-left: 2px solid #2a2d4a; padding-left: 16px; }
+  .iteration-group { margin-bottom: 8px; }
+
+  .step { margin-bottom: 12px; border-radius: 8px; overflow: hidden; }
+  .step-llm { background: #1c2333; border: 1px solid #2a3a5c; }
+  .step-action { background: #1e2a1e; border: 1px solid #2a4a2a; }
+  .step-finish { background: #2a1e2a; border: 1px solid #4a2a4a; }
+  .step-header { padding: 10px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+  .step-header:hover { filter: brightness(1.1); }
+  .step-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; }
+  .type-llm { background: #2a5caa33; color: #7eb8ff; }
+  .type-action { background: #2a8a2a33; color: #5cb85c; }
+  .type-finish { background: #8a2a8a33; color: #c87ecf; }
+  .step-preview { font-size: 13px; color: #888; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .step-body { padding: 0 16px 14px; display: none; }
+  .step-body.open { display: block; }
+  .step-content { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; max-height: 500px; overflow-y: auto; padding: 12px; background: #0002; border-radius: 6px; }
+  .action-name { font-family: monospace; color: #f0c674; }
+  .success-tag { color: #5cb85c; }
+  .error-tag { color: #d9534f; }
+  .result-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+  .empty-state { text-align: center; padding: 80px 32px; color: #555; }
+  .hint { font-size: 13px; color: #7eb8ff; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AgentFactory Trajectory Viewer</h1>
+  <div class="sub">Four Zoom presets are bundled (works on <code>file://</code>). Preset 2 is the live-demo clip.</div>
+  <div class="file-controls">
+    <button class="preset-btn" data-key="preset1_b1_q0_install_sentiment" onclick="loadPreset(this)">1 · B1 Q0 Install (sentiment)</button>
+    <button class="preset-btn" data-key="preset2_b2_q7_pure_reuse_snake" onclick="loadPreset(this)">2 · B2 Q7 Reuse (Snake) ★</button>
+    <button class="preset-btn" data-key="preset3_b2_q8_fast_transfer_bert" onclick="loadPreset(this)">3 · B2 Q8 Transfer (BERT)</button>
+    <button class="preset-btn warn" data-key="preset4_b1_q2_honest_login_diagnosis" onclick="loadPreset(this)">4 · B1 Q2 Honest fail (Tencent)</button>
+    <label>Or pick a JSON<input type="file" id="fileInput" accept=".json"></label>
+    <span class="file-name" id="fileName">No preset loaded</span>
+  </div>
+</div>
+
+<div id="content">
+  <div class="empty-state">
+    <p>Click a preset above. Recommended for Zoom: <b>Preset 2</b>.</p>
+    <p class="hint">1 = from scratch &nbsp;·&nbsp; 2 = pure reuse (1,652 meta tokens) &nbsp;·&nbsp; 3 = Wikipedia transfer &nbsp;·&nbsp; 4 = login blocker, no hallucination</p>
+  </div>
+</div>
+
+<script src="trajectories/presets_bundle.js"></script>
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('fileName').textContent = file.name;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try { render(JSON.parse(ev.target.result)); }
+    catch(err) { showErr(err.message); }
+  };
+  reader.readAsText(file);
+});
+
+function showErr(msg) {
+  document.getElementById('content').innerHTML = `<div class="empty-state"><p style="color:#d9534f">JSON parsing failed: ${esc(msg)}</p></div>`;
+}
+
+function loadPreset(btn) {
+  const key = btn.getAttribute('data-key');
+  const bundle = window.PRESET_TRAJECTORIES;
+  if (!bundle || !bundle[key]) {
+    showErr('presets_bundle.js did not load. If file:// is blocked, run python3 -m http.server 8765 from presentation_kit/.');
+    return;
+  }
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const data = bundle[key];
+  document.getElementById('fileName').textContent = data._preset_label || key;
+  render(data);
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+function truncate(s, n) {
+  if (!s) return '';
+  s = String(s).replace(/\n/g, ' ').trim();
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+
+function render(data) {
+  const traj = data.trajectory || [];
+  const question = data.question || '(None)';
+  const answer = data.final_answer || '(None)';
+  const totalIter = data.total_iterations || traj.length;
+  const timestamp = data.timestamp || '';
+  const usage = data.usage || {};
+  const metaTok = usage.meta && usage.meta.completion_tokens;
+  const subTok = usage.subagent && usage.subagent.completion_tokens;
+
+  const groups = {};
+  for (const step of traj) {
+    const it = step.iteration || 0;
+    if (!groups[it]) groups[it] = [];
+    groups[it].push(step);
+  }
+
+  let html = `<div class="meta-bar">
+    <div class="meta-item">Iterations: <span>${totalIter}</span></div>
+    <div class="meta-item">Steps: <span>${traj.length}</span></div>
+    ${metaTok != null ? `<div class="meta-item">Meta output tokens: <span>${Number(metaTok).toLocaleString()}</span></div>` : ''}
+    ${subTok != null ? `<div class="meta-item">Subagent output tokens: <span>${Number(subTok).toLocaleString()}</span></div>` : ''}
+    ${timestamp ? `<div class="meta-item">Timestamp: <span>${esc(timestamp)}</span></div>` : ''}
+  </div>`;
+
+  html += `<div class="question-box"><div class="label">Question</div><div class="text">${esc(question)}</div></div>`;
+  html += `<div class="answer-box"><div class="label">Final Answer</div><div class="text">${esc(answer)}</div></div>`;
+  html += `<div class="timeline">`;
+
+  const iterKeys = Object.keys(groups).map(Number).sort((a,b) => a - b);
+  for (const it of iterKeys) {
+    const steps = groups[it];
+    const actions = steps.map(s => {
+      if (s.type === 'llm_response') return 'LLM';
+      if (s.type === 'action') return s.action?.action || 'action';
+      if (s.type === 'finish') return 'finish';
+      return s.type;
+    });
+    html += `<div class="iteration-group">
+      <div class="iteration-header" onclick="toggleIter(this)">
+        <span class="iteration-badge">${it}</span>
+        <span class="iteration-summary">${esc(actions.join(' → '))}</span>
+        <span class="iteration-toggle">▶</span>
+      </div>
+      <div class="iteration-body" style="display:none;">`;
+    for (const step of steps) html += renderStep(step);
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+  document.getElementById('content').innerHTML = html;
+  if (iterKeys.length <= 10) {
+    document.querySelectorAll('.iteration-header').forEach(h => toggleIter(h));
+  }
+}
+
+function renderStep(step) {
+  const type = step.type || 'unknown';
+  let cssClass = 'step-llm', typeLabel = type, typeCss = 'type-llm', preview = '', bodyHtml = '';
+
+  if (type === 'llm_response') {
+    const content = step.content || '';
+    preview = truncate(content, 120);
+    let formatted = esc(content);
+    formatted = formatted.replace(/&lt;action&gt;(.*?)&lt;\/action&gt;/g, '<span class="action-name">&lt;action&gt;$1&lt;/action&gt;</span>');
+    formatted = formatted.replace(/&lt;params&gt;([\s\S]*?)&lt;\/params&gt;/g, '<span style="color:#8abeb7">&lt;params&gt;$1&lt;/params&gt;</span>');
+    bodyHtml = `<div class="step-content">${formatted}</div>`;
+  } else if (type === 'action') {
+    cssClass = 'step-action'; typeCss = 'type-action';
+    const actionName = step.action?.action || 'unknown';
+    typeLabel = `Action: ${actionName}`;
+    const success = step.result?.success;
+    const successTag = success === true ? '<span class="success-tag">✓ success</span>' : success === false ? '<span class="error-tag">✗ failed</span>' : '';
+    preview = truncate(JSON.stringify(step.result || {}), 120);
+    let resultStr = step.result ? JSON.stringify(step.result, null, 2) : '';
+    if (resultStr.length > 3000) resultStr = resultStr.slice(0, 3000) + '\n... (truncated)';
+    bodyHtml = `<div class="result-section"><div class="result-label">Result ${successTag}</div><div class="step-content">${esc(resultStr)}</div></div>`;
+  } else if (type === 'finish') {
+    cssClass = 'step-finish'; typeCss = 'type-finish'; typeLabel = 'Finish';
+    const params = step.action?.params || {};
+    const result = step.result || {};
+    preview = truncate(params.answer || result.answer || '', 120);
+    let bodyContent = '';
+    if (params.answer) bodyContent += `Answer:\n${params.answer}\n\n`;
+    if (params.subagents && params.subagents.length > 0) {
+      bodyContent += `Saved Subagents:\n`;
+      for (const sa of params.subagents) bodyContent += `  - ${sa.entry_file}: ${sa.description}\n`;
+    }
+    if (result.message) bodyContent += `\nResult: ${result.message}`;
+    bodyHtml = `<div class="step-content">${esc(bodyContent)}</div>`;
+  } else {
+    preview = truncate(JSON.stringify(step), 120);
+    bodyHtml = `<div class="step-content">${esc(JSON.stringify(step, null, 2))}</div>`;
+  }
+
+  return `<div class="step ${cssClass}">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-type ${typeCss}">${esc(typeLabel)}</span>
+      <span class="step-preview">${esc(preview)}</span>
+      <span class="step-expand">▼</span>
+    </div>
+    <div class="step-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function toggleIter(el) {
+  const body = el.nextElementSibling;
+  const arrow = el.querySelector('.iteration-toggle');
+  if (body.style.display === 'none') { body.style.display = 'block'; arrow.classList.add('open'); }
+  else { body.style.display = 'none'; arrow.classList.remove('open'); }
+}
+function toggleStep(el) {
+  el.nextElementSibling.classList.toggle('open');
+}
+
+document.body.addEventListener('dragover', e => e.preventDefault());
+document.body.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.json')) {
+    document.getElementById('fileName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = ev => { try { render(JSON.parse(ev.target.result)); } catch(err) { showErr(err.message); } };
+    reader.readAsText(file);
+  }
+});
+
+window.addEventListener('load', () => {
+  if (!window.PRESET_TRAJECTORIES) {
+    document.getElementById('content').innerHTML = `<div class="empty-state"><p style="color:#d9534f">Could not load trajectories/presets_bundle.js</p><p class="hint">From presentation_kit/ run: python3 -m http.server 8765</p></div>`;
+  }
+});
+</script>
+</body>
+</html>

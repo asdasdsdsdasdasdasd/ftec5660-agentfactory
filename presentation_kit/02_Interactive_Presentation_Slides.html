@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentFactory Reproducibility — FTEC5660 Zoom</title>
+<style>
+  :root {
+    --bg: #0b0d14; --panel: #141824; --ink: #e8edf7; --muted: #9aa3b5;
+    --blue: #7eb8ff; --green: #5dcea0; --amber: #f0c674; --red: #e07070;
+    --line: #2a3148;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif; }
+  .deck { height: 100%; display: flex; flex-direction: column; }
+  .slide {
+    display: none; flex: 1; padding: 36px 48px 28px; overflow: auto;
+    animation: in .25s ease;
+  }
+  .slide.on { display: flex; flex-direction: column; }
+  .slide.hero.on { justify-content: center; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  h1 { font-size: 34px; letter-spacing: -0.4px; line-height: 1.2; }
+  h2 { font-size: 26px; color: var(--blue); margin-bottom: 18px; }
+  h3 { font-size: 15px; color: var(--amber); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: .08em; }
+  p, li { font-size: 17px; line-height: 1.55; color: var(--ink); }
+  .muted { color: var(--muted); }
+  .kicker { color: var(--green); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 10px; }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; flex: 1; min-width: 200px; }
+  .kpi { font-size: 28px; font-weight: 700; color: var(--green); }
+  .kpi.blue { color: var(--blue); }
+  .kpi.amber { color: var(--amber); }
+  .kpi.red { color: var(--red); }
+  .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  img.fig { width: 100%; max-height: 58vh; object-fit: contain; background: #fff; border-radius: 10px; }
+  img.thumb { width: 100%; border-radius: 8px; background: #fff; max-height: 220px; object-fit: contain; }
+  .nav {
+    display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+    border-top: 1px solid var(--line); background: #10131c;
+  }
+  .nav button {
+    background: #1c2438; color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 13px;
+  }
+  .nav button:hover { background: #243050; }
+  .dots { flex: 1; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .dots button {
+    width: 14px; height: 14px; padding: 0; border-radius: 50%; background: #2c3450; border: 0; cursor: pointer;
+  }
+  .dots button.on { background: var(--blue); }
+  .page { font-size: 12px; color: var(--muted); min-width: 70px; text-align: right; }
+  a { color: var(--blue); }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .two { grid-template-columns: 1fr; } .slide { padding: 20px; } }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #1e3a2a; color: var(--green); margin-right: 6px; }
+  .tag.warn { background: #3a2418; color: var(--amber); }
+  .big { font-size: 20px; }
+  .artifact { cursor: pointer; }
+  .artifact:hover { outline: 2px solid var(--blue); }
+  .foot { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  code { font-family: ui-monospace, monospace; font-size: .92em; color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- 0 -->
+<section class="slide hero on" data-title="Title">
+  <div class="kicker">FTEC5660 · Reproducibility Work · 15-min Zoom</div>
+  <h1>AgentFactory reproduces as a mechanism,<br>not as Claude token counts.</h1>
+  <p class="muted" style="margin:16px 0 28px;max-width:820px">
+    Zhang et al., ACL 2026 Demo (arXiv:2603.18000). We ran the authors’ repo.
+    Meta = DeepSeek Flash. Modification = local Qwen 3.8 27B subagents.
+  </p>
+  <div class="row">
+    <div class="card"><div class="kpi blue">−35.5%</div><div class="label">Meta tokens, B1 → B2 (local Qwen)</div></div>
+    <div class="card"><div class="kpi">−42.8%</div><div class="label">Batch 2 wall time vs homogeneous cloud</div></div>
+    <div class="card"><div class="kpi amber">0</div><div class="label">Cloud subagent tokens billed (modified)</div></div>
+    <div class="card"><div class="kpi">12/12</div><div class="label">Paired tasks completed (skip Q2/Q10/Q12)</div></div>
+  </div>
+  <p class="foot">Arrow keys to move · click dots · <a href="03_Trajectory_Viewer.html">open trajectory viewer</a></p>
+</section>
+
+<!-- 1 -->
+<section class="slide" data-title="Paper">
+  <h2>1. Paper claim &amp; what we reproduced</h2>
+  <div class="two">
+    <div>
+      <h3>Three phases</h3>
+      <ul>
+        <li><b>Install (Batch 1)</b> — solve from scratch, persist Python + <code>SKILL.md</code></li>
+        <li><b>Self-evolve (Batch 2)</b> — reuse / patch those executables</li>
+        <li><b>Deploy</b> — skills run as standalone scripts</li>
+      </ul>
+      <h3>Target</h3>
+      <p>Section 5 Table 1: average <b>meta-agent output tokens</b> per task, excluding subagent LLM.</p>
+      <p class="muted" style="margin-top:10px">Paper: Opus 4,324→2,971 (−31%). Sonnet 9,199→3,862 (−58%).</p>
+    </div>
+    <div class="card">
+      <h3>Our scope</h3>
+      <p>Authors’ GitHub, not a rewrite.</p>
+      <ul>
+        <li>All 15 Batch 1 tasks ran</li>
+        <li>Batch 2: skip <b>Q2 / Q10 / Q12</b> (Tencent login, HF JS board, QQ Music VIP)</li>
+        <li>12 paired tasks for every delta</li>
+        <li>Metric instrumented in <code>llm.py</code> via <code>LLM_ROLE</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-title="Setup">
+  <h2>2. Setup — Edge Case A substitutions</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Paper</th><th>Ours</th></tr></thead>
+    <tbody>
+      <tr><td>Meta-agent</td><td>Claude Opus / Sonnet 4.6</td><td><b>deepseek-flash</b> (V4.1 Flash 1017)</td></tr>
+      <tr><td>Search / fetch</td><td>Serper + Jina</td><td>DeepSeek Search + Fetch, same tool names</td></tr>
+      <tr><td>Browser</td><td>Logged-in Chrome</td><td>Headless Playwright Chromium</td></tr>
+      <tr><td>Subagent — control</td><td>Same as meta</td><td>deepseek-flash</td></tr>
+      <tr><td>Subagent — modified</td><td>—</td><td><b>Qwen3.8-27B-Q4_K_M</b> local :8080</td></tr>
+      <tr><td>Host</td><td>Cloud + desktop Chrome</td><td>Ryzen 9 9950X, 2× RTX 5070 Ti 16GB</td></tr>
+    </tbody>
+  </table>
+  <p class="foot"><span class="tag warn">Comparability</span> Absolute tokens ≠ Table 1 (tokenizer + retrieval). Deltas below are controlled: same prompts, same JSONL, same metric.</p>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-title="Fig1">
+  <h2>3. Table 1 direction reproduces</h2>
+  <img class="fig" src="charts/fig1_aggregate_comparison.png" alt="Fig 1 aggregate comparison">
+  <p class="foot">12 paired tasks. Homogeneous −26.0% (13,290→9,840). Heterogeneous −35.5% (13,290→8,576).</p>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-title="Fig2">
+  <h2>4. Reuse is uneven — clean twins collapse</h2>
+  <img class="fig" src="charts/fig2_per_task_tokens.png" alt="Fig 2 per-task tokens">
+  <p class="foot">Q6 −75% · Q0 −73% · Q7 Snake 1,652 tokens, create=0 · Q13 −70%. Web-shift tasks (Q1, Q4, Q5, Q9) stay expensive.</p>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-title="Modification">
+  <h2>5. Isolated modification</h2>
+  <p class="big" style="margin-bottom:16px">One knob: <code>SUBAGENT_*</code>. Same 30-skill Batch-1 snapshot. Same 12 tasks.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Control</h3>
+      <p>Meta = DeepSeek Flash<br>Sub = DeepSeek Flash (cloud)</p>
+      <p class="muted" style="margin-top:10px">Homogeneous, paper-like topology.</p>
+    </div>
+    <div class="card">
+      <h3>Modified</h3>
+      <p>Meta = DeepSeek Flash<br>Sub = local Qwen 27B, <code>enable_thinking=False</code></p>
+      <p class="muted" style="margin-top:10px">Offload 100% of subagent LLM. Thinking-off so 300–800 token caps are not eaten by hidden CoT.</p>
+    </div>
+  </div>
+  <p class="foot">Measurable: meta tokens, wall time, billed subagent tokens, completion rate. Not a prompt tweak.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-title="Fig3">
+  <h2>6. Ablation: local subagents are faster, not worse</h2>
+  <img class="fig" src="charts/fig3_modification_ablation.png" alt="Fig 3 ablation">
+  <p class="foot">12/12 both arms. Meta tokens −12.8%. Wall time 70.8 → 40.5 min. Cloud subagent bill 373k → 0.</p>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-title="Fig4">
+  <h2>7. Strongest reuse + the bugs that ate tokens</h2>
+  <img class="fig" src="charts/fig4_error_and_reuse_breakdown.png" alt="Fig 4 reuse and debug">
+  <p class="foot">Q10 thinking-retry storm: 102 empty local replies → 50 min timeout. Fix applied; Batch 2 had 0 timeouts. DSML tag leaks 53→12.</p>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-title="Artifacts">
+  <h2>8. Live artifacts (switch folder / viewer)</h2>
+  <div class="row">
+    <div class="card">
+      <img class="thumb" src="04_Showcase_Artifacts/02_agent_generated_charts/B2_Q6_us_health_gdp_regression.png" alt="US health vs GDP">
+      <p style="margin-top:8px"><b>B2 Q6</b> US health vs GDP — saved <code>scatter_reg</code> skill. R²=0.99</p>
+    </div>
+    <div class="card">
+      <img class="thumb" src="04_Showcase_Artifacts/02_agent_generated_charts/B2_Q5_weibo_top20_trending.png" alt="Weibo trending">
+      <p style="margin-top:8px"><b>B2 Q5</b> Weibo top-20 — domain shift from Mastodon; still finished</p>
+    </div>
+    <div class="card">
+      <img class="thumb" src="04_Showcase_Artifacts/02_agent_generated_charts/B2_Q14_preston_curve_gdp_life_expectancy.png" alt="Preston curve">
+      <p style="margin-top:8px"><b>B2 Q14</b> World Bank reuse — GDP vs life expectancy</p>
+    </div>
+  </div>
+  <p class="foot">
+    Open <a href="03_Trajectory_Viewer.html">trajectory viewer → Preset 2 Snake</a>
+    · <a href="04_Showcase_Artifacts/index.html">browse all artifacts</a>
+    (charts, SKILL.md, Snake .py, Paris itinerary, 20s audio).
+  </p>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-title="Gaps">
+  <h2>9. Why absolute tokens ≠ Table 1</h2>
+  <ol style="padding-left:22px">
+    <li>DeepSeek XML friction: 80+ skill-gate rejects; 65 DSML tag leaks.</li>
+    <li>Tokenizer + verbosity on JSON-escaped Python.</li>
+    <li>30 fine-grained skills → retrieval tax; when a skill fits, tokens collapse (Q7, Q8).</li>
+    <li>Web domain shift (Weibo, GitHub HTML, course pages).</li>
+    <li>Host gap: no Chrome login, no ffmpeg (agent used PyAV).</li>
+    <li><code>temperature=1.0</code> single trial (Q4 / Q6 flip across arms).</li>
+  </ol>
+  <p class="foot">Honest skips, not hidden: Q2 Tencent QR, Q10 HF JS + pre-fix timeout, Q12 QQ Music VIP.</p>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-title="Takeaway">
+  <h2>10. Takeaway</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Reproduces</h3>
+      <p>Executable subagent accumulation cuts orchestrator tokens. −26% homogeneous, −35% heterogeneous, same 12-task pair.</p>
+    </div>
+    <div class="card">
+      <h3>Does not</h3>
+      <p>Claude-scale absolute counts. Login-walled sites. Undocumented desktop cookies / ffmpeg.</p>
+    </div>
+    <div class="card">
+      <h3>Build this way</h3>
+      <p>Cloud flash model for orchestration. Local 27B, thinking off, for high-frequency subagent calls. Zero subagent API bill, −43% wall time, 12/12 kept.</p>
+    </div>
+  </div>
+  <p class="foot" style="margin-top:28px">Report: <code>05_REPRODUCIBILITY_REPORT.pdf</code> · Script: <code>01_ZOOM_SPEAKER_SCRIPT.md</code> · Questions.</p>
+</section>
+
+</div>
+
+<div class="nav">
+  <button type="button" onclick="go(-1)">← Prev</button>
+  <div class="dots" id="dots"></div>
+  <button type="button" onclick="go(1)">Next →</button>
+  <div class="page" id="page"></div>
+</div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const dots = document.getElementById('dots');
+let i = 0;
+slides.forEach((s, n) => {
+  const b = document.createElement('button');
+  b.title = s.dataset.title || String(n+1);
+  b.onclick = () => show(n);
+  dots.appendChild(b);
+});
+function show(n) {
+  i = (n + slides.length) % slides.length;
+  slides.forEach((s, k) => s.classList.toggle('on', k === i));
+  [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+  document.getElementById('page').textContent = (i+1) + ' / ' + slides.length + '  ' + (slides[i].dataset.title || '');
+}
+function go(d) { show(i + d); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); go(-1); }
+  if (e.key === 'Home') show(0);
+  if (e.key === 'End') show(slides.length-1);
+});
+show(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Showcase Artifacts — what the agent actually produced</title>
+<style>
+  :root { --bg:#0b0d14; --panel:#141824; --ink:#e8edf7; --muted:#9aa3b5; --blue:#7eb8ff; --line:#2a3148; --green:#5dcea0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--ink); padding:28px 36px 60px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:var(--muted); margin-bottom:28px; font-size:14px; }
+  h2 { color:var(--blue); font-size:16px; margin:28px 0 12px; text-transform:uppercase; letter-spacing:.08em; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+  a.card, .card {
+    display:block; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:12px; color:inherit; text-decoration:none;
+  }
+  a.card:hover { outline:2px solid var(--blue); }
+  img { width:100%; border-radius:8px; background:#fff; display:block; }
+  .name { margin-top:8px; font-size:14px; }
+  .hint { font-size:12px; color:var(--muted); }
+  code { color:#f0c674; font-size:.92em; }
+  audio { width:100%; margin-top:8px; }
+  ul { margin:0; padding-left:18px; }
+  li { margin:6px 0; }
+  a { color:var(--blue); }
+</style>
+</head>
+<body>
+  <h1>Showcase artifacts</h1>
+  <p class="sub">These are files the agent wrote during Batch 1 / Batch 2 — not slides we designed. Click a card. This folder is not a single document; this page is the index.</p>
+  <p class="sub"><a href="../02_Interactive_Presentation_Slides.html">← back to slides</a> · <a href="../03_Trajectory_Viewer.html">trajectory viewer</a></p>
+
+  <h2>1. Saved subagent skills (SKILL.md + Python)</h2>
+  <ul>
+    <li><a href="01_saved_subagent_skills/scatter_reg/SKILL.md">scatter_reg / SKILL.md</a> — Batch 2 Q6 reused this for the US health vs GDP chart</li>
+    <li><a href="01_saved_subagent_skills/scatter_reg/scatter_reg.py">scatter_reg.py</a></li>
+    <li><a href="01_saved_subagent_skills/code_generator_tester/SKILL.md">code_generator_tester / SKILL.md</a> — Tetris → Snake reuse</li>
+    <li><a href="01_saved_subagent_skills/code_generator_tester/code_generator_tester.py">code_generator_tester.py</a></li>
+    <li><a href="01_saved_subagent_skills/travel_itinerary_planner/SKILL.md">travel_itinerary_planner / SKILL.md</a> — Tokyo → Paris</li>
+    <li><a href="01_saved_subagent_skills/travel_itinerary_planner/travel_itinerary_planner.py">travel_itinerary_planner.py</a></li>
+  </ul>
+
+  <h2>2. Charts the agent generated</h2>
+  <div class="grid">
+    <a class="card" href="02_agent_generated_charts/B2_Q6_us_health_gdp_regression.png">
+      <img src="02_agent_generated_charts/B2_Q6_us_health_gdp_regression.png" alt="B2 Q6">
+      <div class="name">B2 Q6 · US health vs GDP (show this)</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B1_Q6_china_edu_gdp_regression.png">
+      <img src="02_agent_generated_charts/B1_Q6_china_edu_gdp_regression.png" alt="B1 Q6">
+      <div class="name">B1 Q6 · China edu vs GDP (from-scratch twin)</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B2_Q5_weibo_top20_trending.png">
+      <img src="02_agent_generated_charts/B2_Q5_weibo_top20_trending.png" alt="B2 Q5">
+      <div class="name">B2 Q5 · Weibo top-20</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B2_Q14_preston_curve_gdp_life_expectancy.png">
+      <img src="02_agent_generated_charts/B2_Q14_preston_curve_gdp_life_expectancy.png" alt="B2 Q14">
+      <div class="name">B2 Q14 · GDP vs life expectancy</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B2_Q3_japan_population_chart.png">
+      <img src="02_agent_generated_charts/B2_Q3_japan_population_chart.png" alt="B2 Q3">
+      <div class="name">B2 Q3 · Japan population</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B1_Q0_housing_sentiment_trend.png">
+      <img src="02_agent_generated_charts/B1_Q0_housing_sentiment_trend.png" alt="B1 Q0">
+      <div class="name">B1 Q0 · Housing sentiment</div>
+    </a>
+    <a class="card" href="02_agent_generated_charts/B1_Q3_china_population_chart.png">
+      <img src="02_agent_generated_charts/B1_Q3_china_population_chart.png" alt="B1 Q3">
+      <div class="name">B1 Q3 · China population</div>
+    </a>
+  </div>
+
+  <h2>3. Reports and code</h2>
+  <ul>
+    <li><a href="03_agent_generated_reports_and_code/B2_Q7_snake_game_solution.py">B2 Q7 Snake · solution.py</a> — do not run Tk on Zoom unless you have a display</li>
+    <li><a href="03_agent_generated_reports_and_code/B2_Q13_paris_3day_itinerary.md">B2 Q13 Paris 3-day itinerary</a></li>
+    <li><a href="03_agent_generated_reports_and_code/B2_Q8_bert_transformer_summary.md">B2 Q8 BERT Wikipedia summary</a></li>
+    <li><a href="03_agent_generated_reports_and_code/B2_Q1_mit_6s191_lectures.md">B2 Q1 MIT 6.S191 lectures</a></li>
+  </ul>
+
+  <h2>4. Audio previews (~20 seconds)</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="name">B2 Q11 · focus music (play on Zoom if time)</div>
+      <audio controls src="04_agent_generated_audio_previews/B2_Q11_focus_music_20s_preview.mp3"></audio>
+    </div>
+    <div class="card">
+      <div class="name">B1 Q11 · bedtime meditation</div>
+      <audio controls src="04_agent_generated_audio_previews/B1_Q11_bedtime_meditation_20s_preview.mp3"></audio>
+    </div>
+  </div>
+</body>
+</html>
